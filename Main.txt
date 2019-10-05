@@ -1,0 +1,370 @@
+import java.lang.reflect.Array;
+        import java.util.*;
+
+class Main{
+
+    public static long[] factorial={1,1,2,6,24,120,720,5040,40320,362880,
+            3628800,39916800,479001600,6227020800L,87178291200L,
+            1307674368000L,20922789888000L,355687428096000L,
+            6402373705728000L,121645100408832000L,
+            2432902008176640000L};
+    public static void main(String[] args) {
+        Scanner in=new Scanner(System.in);
+
+        String str1=in.nextLine();
+        String str2=in.nextLine();
+        String[] s1=str1.split(" ");
+        String[] s2=str2.split(" ");
+
+        int type=Integer.valueOf(s1[1]);
+        long knum=Long.parseLong(s1[2]);
+
+        int[] p=new int[s2.length];
+        for(int i=0;i<s2.length;i++){
+            p[i]=Integer.valueOf(s2[i]);
+        }
+        switch (type){
+            case 1:Lexicographic(p,knum);break;
+            case 2:Incremental(p,knum);break;
+            case 3:Deccremental(p,knum);break;
+            case 4:Substitution(p,knum);break;
+        }
+
+    }
+
+
+
+    public static void Lexicographic(int[] p,long knum){
+
+        int[] interp=new int[p.length];
+        for(int i=0;i<p.length;i++){
+            int x=0;
+            for(int j=i+1;j<p.length;j++){
+                if(p[j]<p[i]) x++;
+            }
+            interp[i]=x;
+        }
+
+        long knum2=knum;
+        knum=Math.abs(knum);
+        int[] interk=new int[p.length];
+        for(int i=0;i<p.length;i++){
+            int x=(int)(knum/factorial[p.length-i-1]);
+            knum%=factorial[p.length-i-1];
+            interk[i]=x;
+        }
+        int[] interres=new int[p.length];
+
+        int c=0;
+        if(knum2>=0){
+            for(int i=p.length-1;i>=0;i--){
+                if(interp[i]+interk[i]+c>=p.length-i){
+                    interres[i]=interp[i]+interk[i]+c-p.length+i;
+                    c=1;
+                }else{
+                    interres[i]=interp[i]+interk[i]+c;
+                    c=0;
+                }
+            }
+        }else{
+            for(int i=p.length-1;i>=0;i--){
+                interres[i]=(interp[i]-interk[i]-c+p.length-i)%(p.length-i);
+                if(interp[i]-interk[i]-c<0) c=1;
+                else c=0;
+            }
+        }
+
+        Arrays.fill(interk,-1);
+        for(int i=0;i<p.length;i++){
+            Arrays.sort(interk);
+            int x=interres[i]+1;
+            for(int j=0;j<p.length;j++){
+                if(interk[j]<=x && interk[j]!=-1) x++;
+            }
+            interk[0]=x;
+            interp[i]=x;
+        }
+
+        for(int i=0;i<p.length;i++) System.out.print(interp[i]+" ");
+    }
+
+    public static void Incremental(int[] p,long knum){
+
+        int[] interp1=new int[p.length];
+        HashMap<Integer,Integer> map=new HashMap<>();
+        for(int i=0;i<p.length;i++){
+            int x=0;
+            for(int j=i+1;j<p.length;j++){
+                if(p[j]<p[i]) x++;
+            }
+            interp1[i]=x;
+            map.put(p[i],interp1[i]);
+        }
+        Arrays.sort(p);
+        int[] interp=new int[p.length];
+        for(int i=0;i<p.length;i++){
+            interp[i]=map.get(p[p.length-i-1]);
+        }
+        long knum2=knum;
+        knum=Math.abs(knum);
+        int[] interk=new int[p.length];
+        for(int i=0;i<p.length;i++){
+            int x=(int)(knum/factorial[p.length-i-1]);
+            knum%=factorial[p.length-i-1];
+            interk[i]=x;
+        }
+        int[] interres=new int[p.length];
+
+        int c=0;
+        if(knum2>=0){
+            for(int i=p.length-1;i>=0;i--){
+                if(interp[i]+interk[i]+c>=p.length-i){
+                    interres[i]=interp[i]+interk[i]+c-p.length+i;
+                    c=1;
+                }else{
+                    interres[i]=interp[i]+interk[i]+c;
+                    c=0;
+                }
+                map.remove(p[p.length-i-1]);
+                map.put(p[p.length-i-1],interres[i]);
+            }
+        }else{
+            for(int i=p.length-1;i>=0;i--){
+                interres[i]=(interp[i]-interk[i]-c+p.length-i)%(p.length-i);
+                if(interp[i]-interk[i]-c<0) c=1;
+                else c=0;
+                map.remove(p[p.length-i-1]);
+                map.put(p[p.length-i-1],interres[i]);
+            }
+
+        }
+
+        Arrays.fill(interp,-1);
+        for(int i=p.length-1;i>=0;i--){
+            int x=map.get(p[i])+1;
+            int j=p.length-1;
+            while(x>0){
+                if(interp[j]==-1) {
+                    x--;
+                    j--;
+                }else j--;
+            }
+            interp[j+1]=p[i];
+        }
+
+        for(int i=0;i<p.length;i++) System.out.print(interp[i]+" ");
+
+
+    }
+
+    public static void Deccremental(int[] p,long knum){
+        int[] interp1=new int[p.length];
+        HashMap<Integer,Integer> map=new HashMap<>();
+        for(int i=0;i<p.length;i++){
+            int x=0;
+            for(int j=i+1;j<p.length;j++){
+                if(p[j]<p[i]) x++;
+            }
+            interp1[i]=x;
+            map.put(p[i],interp1[i]);
+        }
+        Arrays.sort(p);
+        int[] interp=new int[p.length];
+        for(int i=0;i<p.length;i++){
+            interp[i]=map.get(p[i]);
+        }
+        long knum2=knum;
+        knum=Math.abs(knum);
+        int[] interk=new int[p.length];
+        for(int i=p.length-1;i>=0;i--){
+            int x=(int)(knum%(i+1));
+            knum/=(i+1);
+            interk[i]=x;
+        }
+
+        int[] interres=new int[p.length];
+
+        int c=0;
+        if(knum2>=0){
+            for(int i=p.length-1;i>=0;i--){
+                if(interp[i]+interk[i]+c>=1+i){
+                    interres[i]=interp[i]+interk[i]+c-1-i;
+                    c=1;
+                }else{
+                    interres[i]=interp[i]+interk[i]+c;
+                    c=0;
+                }
+                map.remove(p[i]);
+                map.put(p[i],interres[i]);
+            }
+        }else{
+            for(int i=p.length-1;i>=0;i--){
+                interres[i]=(interp[i]-interk[i]-c+1+i)%(1+i);
+                if(interp[i]-interk[i]-c<0) c=1;
+                else c=0;
+                map.remove(p[i]);
+                map.put(p[i],interres[i]);
+            }
+
+        }
+
+        Arrays.fill(interp,-1);
+        for(int i=p.length-1;i>=0;i--){
+            int x=map.get(p[i])+1;
+            int j=p.length-1;
+            while(x>0){
+                if(interp[j]==-1) {
+                    x--;
+                    j--;
+                }else j--;
+            }
+            interp[j+1]=p[i];
+        }
+
+        for(int i=0;i<p.length;i++) System.out.print(interp[i]+" ");
+
+
+
+    }
+
+    public static void Substitution(int[] p,long knum){
+
+        boolean[] direction=new boolean[p.length];
+        int[] p1=new int[p.length];
+        for(int i=0;i<p.length;i++){
+            p1[i]=p[i];
+        }
+        Arrays.sort(p1);
+        HashMap<Integer,Integer> map1=new HashMap<>();
+        HashMap<Integer,Integer> map=new HashMap<>();
+        for(int i=0;i<p.length;i++){
+            for(int j=0;j<p.length;j++){
+                if(p1[i]==p[j]) map1.put(p1[i],j);
+            }
+        }
+
+        int[] interp=new int[p.length];
+        for(int i=0;i<p.length;i++){
+            if(i==0) {
+                direction[i]=true;
+                interp[i]=0;
+            }else if(i==1){
+                direction[i]=true;
+                int x=0;
+                for(int j=map1.get(p1[i])+1;j<p.length;j++){
+                    if(p[j]<p1[i]) x++;
+                }
+                interp[i]=x;
+                map.put(p1[i],interp[i]);
+            }else{
+                if((i+1)%2==0) {
+                    if((interp[i-1]+interp[i-2])%2==0) {
+                        direction[i]=true;
+                        int x=0;
+                        for(int j=map1.get(p1[i])+1;j<p.length;j++){
+                            if(p[j]<p1[i]) x++;
+                        }
+                        interp[i]=x;
+                        map.put(p1[i],interp[i]);
+                    }else {
+                        direction[i]=false;
+                        int x=0;
+                        for(int j=map1.get(p1[i])-1;j>=0;j--){
+                            if(p[j]<p1[i]) x++;
+                        }
+                        interp[i]=x;
+                        map.put(p1[i],interp[i]);
+                    }
+                }else {
+                    if(interp[i-1]%2==0){
+                        direction[i]=true;
+                        int x=0;
+                        for(int j=map1.get(p1[i])+1;j<p.length;j++){
+                            if(p[j]<p1[i]) x++;
+                        }
+                        interp[i]=x;
+                        map.put(p1[i],interp[i]);
+                    }else {
+                        direction[i]=false;
+                        int x=0;
+                        for(int j=map1.get(p1[i])-1;j>=0;j--){
+                            if(p[j]<p1[i]) x++;
+                        }
+                        interp[i]=x;
+                        map.put(p1[i],interp[i]);
+                    }
+                }
+            }
+        }
+
+        long knum2=knum;
+        knum=Math.abs(knum);
+        int[] interk=new int[p.length];
+        for(int i=p.length-1;i>=0;i--){
+            int x=(int)(knum%(i+1));
+            knum/=(i+1);
+            interk[i]=x;
+        }
+
+        int[] interres=new int[p.length];
+
+        int c=0;
+        if(knum2>=0){
+            for(int i=p.length-1;i>=0;i--){
+                if(interp[i]+interk[i]+c>=1+i){
+                    interres[i]=interp[i]+interk[i]+c-1-i;
+                    c=1;
+                }else{
+                    interres[i]=interp[i]+interk[i]+c;
+                    c=0;
+                }
+                map.remove(p[i]);
+                map.put(p[i],interres[i]);
+            }
+        }else{
+            for(int i=p.length-1;i>=0;i--){
+                interres[i]=(interp[i]-interk[i]-c+1+i)%(1+i);
+                if(interp[i]-interk[i]-c<0) c=1;
+                else c=0;
+                map.remove(p[i]);
+                map.put(p[i],interres[i]);
+            }
+        }
+        for(int i=p.length-1;i>=2;i--){
+            if((i+1)%2!=0) {
+                if(interres[i-1]%2==0) direction[i]=true;
+                else direction[i]=false;
+            }else{
+                if((interres[i-1]+interres[i-2])%2!=0) direction[i]=false;
+                else direction[i]=true;
+            }
+        }
+        int[] res=new int[p.length];
+        Arrays.fill(res,-1);
+        for(int i=p.length-1;i>=0;i--){
+            int x=interres[i]+1;
+            if(direction[i]) {
+                for(int j=p.length-1;j>=0;j--){
+                    if(res[j]!=-1) continue;
+                    if(x==1) {
+                        res[j]=p1[i];
+                        break;
+                    }else x--;
+                }
+            }else{
+
+                for(int j=0;j<p.length;j++){
+                    if(res[j]!=-1) continue;
+                    if(x==1) {
+                        res[j]=p1[i];
+
+                        break;
+                    }else x--;
+                }
+            }
+        }
+        for(int i=0;i<p.length;i++) System.out.print(res[i]+" ");
+
+
+    }
+}
